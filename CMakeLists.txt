@@ -9,12 +9,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
 project(server LANGUAGES CXX)
-add_executable(server utils.h utils.cpp server.cpp)
+add_executable(server utils.h utils.cpp server.cpp
+        clientManager.cpp
+        clientManager.h
+)
 target_link_libraries(server pthread)
 
 
 project(client LANGUAGES CXX)
-add_executable(client utils.h utils.cpp client.cpp)
+add_executable(client utils.h utils.cpp client.cpp
+        clientManager.cpp
+        clientManager.h
+)
 target_link_libraries(client pthread)
 
 

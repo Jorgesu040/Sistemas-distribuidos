@@ -1,57 +1,9 @@
 #include "utils.h"
 #include <string>
 #include <iostream>
+#include "clientManager.h"
 
 using namespace std;
-
-void enviarMensaje(int id, string msg){
-	
-	vector<unsigned char> buffer; // Para empaquetar datos
-	
-	// Empaquetamos el tamaño porque, si por ejemplo enviamos dos mensajes:
-	// ¿Como sabemos donde empieza/acaba cada mensaje? Con una cabecera que creamos con pack()
-	// Unicamente podriamos saber el tamaño completo del paquete si no mandamos cabecera	
-	pack(buffer, msg.size());
-	
-	packv(buffer, msg.data(), msg.size());
-	
-	sendMSG(id, buffer);
-	
-	// Limpiar buffer
-	buffer.clear();
-	
-	recvMSG(id, buffer);
-	
-	int ack = unpack<int>(buffer);
-	if (ack != 1){
-		cout<<"Error enviando mensaje";
-	} else {
-		cout << "Recibido correctamente ACK: " << ack << endl;
-	}
-
-}
-
-string recibeMensaje (int id){
-	
-	string mensaje;
-	vector<unsigned char> buffer; // Para crear un paquete de datos
-	recvMSG(id, buffer);
-
-	mensaje.resize(unpack<long int>(buffer));
-
-	unpackv(buffer, (char*)mensaje.data(), mensaje.size());
-	
-	// Send ACK
-	int ack = 1;
-	// Limpiar buffer
-	buffer.clear();
-	pack(buffer, ack);
-	sendMSG(id, buffer);
-	
-	return 	mensaje;
-	
-}
-
 
 void chat(int serverId, string userName){
 	
