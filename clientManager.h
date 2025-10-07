@@ -10,7 +10,6 @@
 #include <bits/stringfwd.h>
 
 
-
 class clientManager {
 
 public:
@@ -24,17 +23,19 @@ public:
 
     static inline std::map<std::string, int> connectionIds;
 
-    void enviarMensaje(int id, std::string msg);
-    std::string desempaquetaTipoTexto(std::vector<unsigned char> buffer);
+    static void enviarMensaje(int id, std::string msg);
+    static std::string desempaquetaTipoTexto(std::vector<unsigned char> &buffer);
 
     static void enviaLogin(int id, std::string userName );
     static void recibeLogin(int id);
 
-    void enviarACK(int clientID, std::vector<unsigned char> buffer);
+    static void enviarACK(int clientID, std::vector<unsigned char> buffer);
 
-    void atiendeCliente(int clientID);
+    static void atiendeCliente(int clientID);
 
-    void reenviaTexto(std::string userName, std::string msg);
+    static void reenviaTexto(std::string userName, std::string msg);
+
+    static std::string recibeMensaje(int serverId);
 };
 
 

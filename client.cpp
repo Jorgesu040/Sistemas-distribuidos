@@ -11,6 +11,11 @@ void chat(int serverId, string userName){
 	string mensajeLeido;
 	string mensajeRecivido;
 	// Mientrar no salir 
+
+	cout << "Cliente conectado, introduzca usuario:" << endl;
+	getline(cin, mensajeLeido);
+	clientManager::enviaLogin(serverId, mensajeLeido);
+
 	while (!salir) {
 		// Pedir mensaje
 		cout << "Introduzca un mensaje para el servidor:" << endl;
@@ -20,12 +25,12 @@ void chat(int serverId, string userName){
 		salir = (mensajeLeido == "salir");
 		if (!salir) {
 			//Enviar mensaje
-			enviarMensaje(serverId, userName);
-			enviarMensaje(serverId, mensajeLeido);
-			
+			clientManager::enviarMensaje(serverId, userName);
+			clientManager::enviarMensaje(serverId, mensajeLeido);
+
 			// Recibir mensajes del servidor
-			mensajeRecivido = recibeMensaje(serverId);
-			// Leer mensajes del servidor 
+			mensajeRecivido = clientManager::recibeMensaje(serverId);
+			// Leer mensajes del servidor
 			cout << mensajeRecivido;
 		}
 	}

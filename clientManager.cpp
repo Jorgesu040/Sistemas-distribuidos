@@ -17,6 +17,8 @@ void clientManager::enviarMensaje(int id, string msg){
     // Empaquetamos el tamaño porque, si por ejemplo enviamos dos mensajes:
     // ¿Como sabemos donde empieza/acaba cada mensaje? Con una cabecera que creamos con pack()
     // Unicamente podriamos saber el tamaño completo del paquete si no mandamos cabecera
+    pack(buffer, texto); // Tipo mensaje
+
     pack(buffer, msg.size());
 
     packv(buffer, msg.data(), msg.size());
@@ -37,7 +39,7 @@ void clientManager::enviarMensaje(int id, string msg){
 
 }
 
-string clientManager::desempaquetaTipoTexto (vector<unsigned char> buffer){
+string clientManager::desempaquetaTipoTexto (vector<unsigned char> &buffer){
 
     string mensaje;
     mensaje.resize(unpack<long int>(buffer));
@@ -135,7 +137,46 @@ void clientManager::atiendeCliente(int clientID){
 }
 
 void clientManager::reenviaTexto(string userName, string msg) {
+    
+    // Empaquetar mensaje
+    vector<unsigned char> buffer;
+    pack(buffer, texto); // Tipo mensaje
+
+    pack(buffer, userName.size()); // Tamaño mensaje
+    packv(buffer, msg.data(), msg.size()); // Datos mensaje
+
+    pack(buffer, userName.size());
+    packv(buffer, (char*)userName.data(), userName.size());
+
     // Buscar usuario en la lista
     // Si existe, enviar mensaje
     // Si no existe, error
+
+    for (auto client : connectionIds) {
+        if (client.first != userName)
+            sendMSG(client.second, buffer);
+    }
+    buffer.clear(); // Opcional
+}
+
+string clientManager::recibeMensaje(int serverId)
+{
+    vector<unsigned char> buffer;
+    string userName;
+    string mensaje;
+
+    // Recibe mensaje
+    recvMSG(serverId, buffer);
+
+    // Desempaquetar mensaje reenviado
+        // Desempaquetar tipo
+    auto type = unpack<msgTypes>(buffer);
+        // Desempaqueta username
+    userName = desempaquetaTipoTexto(buffer);
+        // Desempaqueta mensaje
+    mensaje = desempaquetaTipoTexto(buffer);
+        // Mensaje
+
+    return '[' + userName + "]:" + mensaje + '\n'; 
+
 }

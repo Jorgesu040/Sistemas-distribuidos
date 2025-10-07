@@ -3,6 +3,7 @@
 #include <string>
 #include <thread>
 #include <list>
+#include "clientManager.h"
 
 
 int main(int argc, char** argv)
@@ -26,7 +27,7 @@ int main(int argc, char** argv)
 		int clientID = getLastClientID();
 		std::cout << "Identificador de cliente: " << clientID << std::endl;
 		
-		std::thread *hilo = new std::thread(atiendeCliente,clientID);
+		std::thread *hilo = new std::thread(clientManager::atiendeCliente,clientID);
 		// Version en la que esperamos a que termine el cliente 
 		// atiendeCliente(clientID)
 		
