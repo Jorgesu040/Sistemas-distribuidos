@@ -5,61 +5,155 @@
 
 using namespace std;
 
-void chat(int serverId, string userName){
-	
+void leerMensajeTextoExternos(int id)
+{
+	string txt = "";
+	string user = "";
+	// Mientrar no cerrar programa
+	while (!clientManager::cierreDePrograma)
+	{
+
+		while (clientManager::bufferTxt.size() == 0)
+			usleep(100);
+
+		clientManager::cerrojoBuffers.lock();
+		user = clientManager::desempaquetaTipoTexto(clientManager::bufferTxt);
+		txt = clientManager::desempaquetaTipoTexto(clientManager::bufferTxt);
+		clientManager::cerrojoBuffers.unlock();
+		cout << '[' + user + "]: " + txt + '\n';
+	}
+
+	cout << "Cierre de hilo recepcion de mensajes de clientes\n";
+}
+
+void recibePaquetesAsync(int id)
+{
+	vector<unsigned char> buffer;
+	// Mientras no cerrar programa
+	while (!clientManager::cierreDePrograma)
+	{
+		// Recibe datos
+		if (!clientManager::cierreDePrograma) {
+			recvMSG(id, buffer);
+		} else {
+			break;
+		}
+		clientManager::msgTypes tipo = unpack<clientManager::msgTypes>(buffer);
+
+
+		clientManager::cerrojoBuffers.lock();
+
+		switch (tipo)
+		{
+		case clientManager::ack:
+		{
+			pack(clientManager::bufferAcks, clientManager::ack);
+		}
+		break;
+		case clientManager::texto:
+		{
+			string user = clientManager::desempaquetaTipoTexto(buffer);
+			string txt = clientManager::desempaquetaTipoTexto(buffer);
+			pack(clientManager::bufferTxt, user.size());
+			packv(clientManager::bufferTxt, user.data(), user.size());
+			pack(clientManager::bufferTxt, txt.size());
+			packv(clientManager::bufferTxt, txt.data(), txt.size());
+		}
+		break;
+		case clientManager::shutdown:
+		{
+			clientManager::cierreDePrograma = true;
+            vector<unsigned char> ack_buffer;
+            pack(ack_buffer, clientManager::ack);
+            sendMSG(id, ack_buffer);
+			cout << "Cierre del servidor. Pulse ENTER para salir" << endl;
+		} break;
+		default:
+		{
+			ERRORLOG("Mensaje no reconocido. Tipo recibido: " + to_string(tipo));
+		}
+		break;
+		}
+		clientManager::cerrojoBuffers.unlock();
+	}
+}
+
+void chat(int serverId, string userName)
+{
+
 	bool salir = false;
 	string mensajeLeido;
 	string mensajeRecivido;
-	// Mientrar no salir 
+	// Mientrar no salir
+	cout << "Cliente conectado, introduzca usuario \n";
+	cin >> userName;
+	cin.ignore(); // Limpiar buffer de entrada
+	
+	// enviar login
+	clientManager::enviaLogin(serverId, userName);
 
-	cout << "Cliente conectado, introduzca usuario:" << endl;
-	getline(cin, mensajeLeido);
-	clientManager::enviaLogin(serverId, mensajeLeido);
 
-	while (!salir) {
+	// Mientrar no salir o servidor no cierre programa
+	while (!salir && !clientManager::cierreDePrograma)
+	{
 		// Pedir mensaje
 		cout << "Introduzca un mensaje para el servidor:" << endl;
 		// Leerlo
 		getline(cin, mensajeLeido);
+
+		if (clientManager::cierreDePrograma) break;
+
 		// Si no salir
 		salir = (mensajeLeido == "salir");
-		if (!salir) {
-			//Enviar mensaje
-			clientManager::enviarMensaje(serverId, userName);
-			clientManager::enviarMensaje(serverId, mensajeLeido);
+		if (!salir && !clientManager::cierreDePrograma)
+		{	
+			if (mensajeLeido == "/privado")
+			{	
+				string recipient;
+				cout << "Introduzca el nombre cliente al que enviar el mensaje:" << endl;
+				
+				getline(cin, recipient);
 
-			// Recibir mensajes del servidor
-			mensajeRecivido = clientManager::recibeMensaje(serverId);
-			// Leer mensajes del servidor
-			cout << mensajeRecivido;
-		}
+				cout << "Introduzca el mensaje privado:" << endl;
+				
+				getline(cin, mensajeLeido);
+
+				clientManager::enviarMensajePrivado(serverId, mensajeLeido, recipient);
+
+			} else {
+				// Enviar mensaje
+				clientManager::enviarMensaje(serverId, mensajeLeido);
+			}
+		} 
+	}
+
+	if (salir) {
+		// Enviar mensaje de salida
+		vector<unsigned char> buffer;
+		pack(buffer, clientManager::exit);
+		sendMSG(serverId, buffer);
+		
+	} else if (clientManager::cierreDePrograma) {
+		vector<unsigned char> buffer;
+		pack(buffer, clientManager::ack);
+		sendMSG(serverId, buffer);	
 	}
 }
 
-int main(int argc,char** argv)
+int main(int argc, char **argv)
 {
-	
-	string nombreUsario="Pero pringao ponte un nombre";
-	
-	cout << "Inicio conexion cliente";
-	auto serverConnID=initClient("127.0.0.1",1250);
-	
-	cout << "Conectado, introduzca usuario (sin espacios):" << endl;
-	
-	cin >> nombreUsario;
-	
-	chat (serverConnID.serverId, nombreUsario);
-	
-	//Pseudocodigo. Para enviar:
-		// empaquetar datos
-			// empaquetar tamaño del string
-			// empaquetar datos del string
-		// enviar datos
-		// Comprobar que se recibió la respuesta
-	
-	
-	//closeConnection(serverConnID.serverId);
-	
-	
+
+	string nombreUsario = "";
+
+	cout << "Inicio conexion cliente ";
+	auto serverConnID = initClient("127.0.0.1", 1250);
+
+	thread *th = new thread(leerMensajeTextoExternos, serverConnID.serverId);
+	thread *th2 = new thread(recibePaquetesAsync, serverConnID.serverId);
+
+	chat(serverConnID.serverId, nombreUsario);
+
+	closeConnection(serverConnID.serverId);
+
 	return 0;
 }
