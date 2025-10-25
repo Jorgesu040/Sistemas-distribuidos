@@ -10,7 +10,7 @@
 
 static volatile sig_atomic_t keepRunning = 1;
 
-void muerteOrdenada(int s) {
+void muerteOrdenada(int) {
 	keepRunning = 0;
 }
 

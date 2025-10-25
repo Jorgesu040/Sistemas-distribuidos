@@ -7,9 +7,9 @@ using namespace std;
 
 void leerMensajeTextoExternos(int id)
 {
-	string txt = "";
-	string user = "";
-	// Mientrar no cerrar programa
+	string txt;
+	string user;
+	// Mientras no cerrar programa
 	while (!clientManager::cierreDePrograma)
 	{
 
@@ -20,7 +20,7 @@ void leerMensajeTextoExternos(int id)
 		user = clientManager::desempaquetaTipoTexto(clientManager::bufferTxt);
 		txt = clientManager::desempaquetaTipoTexto(clientManager::bufferTxt);
 		clientManager::cerrojoBuffers.unlock();
-		cout << '[' + user + "]: " + txt + '\n';
+		cout << '[' + user + "]: " << txt << '\n';
 	}
 
 	cout << "Cierre de hilo recepcion de mensajes de clientes\n";
@@ -38,8 +38,8 @@ void recibePaquetesAsync(int id)
 		} else {
 			break;
 		}
-		clientManager::msgTypes tipo = unpack<clientManager::msgTypes>(buffer);
 
+		auto tipo = unpack<clientManager::msgTypes>(buffer);
 
 		clientManager::cerrojoBuffers.lock();
 
@@ -83,8 +83,8 @@ void chat(int serverId, string userName)
 
 	bool salir = false;
 	string mensajeLeido;
-	string mensajeRecivido;
-	// Mientrar no salir
+	string mensajeRecibido;
+	// Mientras no salir
 	cout << "Cliente conectado, introduzca usuario \n";
 	cin >> userName;
 	cin.ignore(); // Limpiar buffer de entrada
@@ -93,7 +93,7 @@ void chat(int serverId, string userName)
 	clientManager::enviaLogin(serverId, userName);
 
 
-	// Mientrar no salir o servidor no cierre programa
+	// Mientras no salir o servidor no cierre programa
 	while (!salir && !clientManager::cierreDePrograma)
 	{
 		// Pedir mensaje
@@ -143,17 +143,24 @@ void chat(int serverId, string userName)
 int main(int argc, char **argv)
 {
 
-	string nombreUsario = "";
+	string nombreUsario;
 
 	cout << "Inicio conexion cliente ";
 	auto serverConnID = initClient("127.0.0.1", 1250);
 
-	thread *th = new thread(leerMensajeTextoExternos, serverConnID.serverId);
-	thread *th2 = new thread(recibePaquetesAsync, serverConnID.serverId);
+	auto *th = new thread(leerMensajeTextoExternos, serverConnID.serverId);
+	auto *th2 = new thread(recibePaquetesAsync, serverConnID.serverId);
 
 	chat(serverConnID.serverId, nombreUsario);
 
+	// Señalar cierre de programa si se sale por chat (usuario escribe "salir")
+	clientManager::cierreDePrograma = true;
 	closeConnection(serverConnID.serverId);
+
+	if (th->joinable()) th->join();
+	delete th;
+	if (th2->joinable()) th2->join();
+	delete th2;
 
 	return 0;
 }

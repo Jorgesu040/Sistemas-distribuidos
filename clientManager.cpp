@@ -87,7 +87,7 @@ string clientManager::desempaquetaTipoTexto (vector<unsigned char> &buffer){
 
     string mensaje;
     mensaje.resize(unpack<long int>(buffer));
-    unpackv(buffer, (char*)mensaje.data(), mensaje.size());
+    unpackv(buffer, mensaje.data(), mensaje.size());
     return 	mensaje;
 
 }
@@ -219,7 +219,7 @@ void clientManager::reenviaTexto(string userName, string msg) {
     packv(buffer, (char*)msg.data(), msg.size());
 
 
-    for (auto client : connectionIds) {
+    for (const auto& client : connectionIds) {
         if (client.first != userName)
             sendMSG(client.second, buffer);
     }
@@ -227,7 +227,7 @@ void clientManager::reenviaTexto(string userName, string msg) {
 }
 
 
-void clientManager::reenviaTextoPrivado(string userName, string msg, string recipient) {
+void clientManager::reenviaTextoPrivado(string userName, string msg, const string& recipient) {
 
     vector<unsigned char> buffer;
 

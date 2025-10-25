@@ -46,7 +46,7 @@ public:
     static void reenviaTexto(std::string userName, std::string msg);
 
     // Nuevas funciones para mensajes privados
-    static void reenviaTextoPrivado(std::string userName, std::string msg, std::string recipient);
+    static void reenviaTextoPrivado(std::string userName, std::string msg, const std::string& recipient);
     static void enviarMensajePrivado(int id, std::string msg, std::string recipient);
 
     static void enviarApagado(int id);
