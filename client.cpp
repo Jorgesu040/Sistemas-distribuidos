@@ -140,13 +140,25 @@ void chat(int serverId, string userName)
 	}
 }
 
-int main(int argc, char **argv)
-{
-
+int main(int argc, char **argv) {
 	string nombreUsario;
+	string ip = "127.0.0.1"; // Default IP
+	int port = 1250; // Default port
 
-	cout << "Inicio conexion cliente ";
-	auto serverConnID = initClient("127.0.0.1", 1250);
+	// Parse command line arguments
+	if (argc >= 2) {
+		ip = argv[1];
+	}
+	if (argc >= 3) {
+		port = atoi(argv[2]);
+		if (port < 1024 || port > 65535) {
+			cout << "Error: Puerto invalido. Rango válido: 1024-65535. Usando puerto por defecto (1250)\n";
+			port = 1250;
+		}
+	}
+
+	cout << "Inicio conexion cliente a " << ip << ":" << port << endl;
+	auto serverConnID = initClient(ip, port);
 
 	auto *th = new thread(leerMensajeTextoExternos, serverConnID.serverId);
 	auto *th2 = new thread(recibePaquetesAsync, serverConnID.serverId);
