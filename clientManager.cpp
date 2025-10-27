@@ -1,7 +1,3 @@
-//
-// Created by jorge on 10/2/25.
-//
-
 #include "clientManager.h"
 #include "utils.h"
 #include "iostream"

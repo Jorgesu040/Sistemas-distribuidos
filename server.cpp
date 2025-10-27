@@ -1,12 +1,9 @@
-// Modificaciones necesarias en server.cpp
-
 #include "utils.h"
 #include <iostream>
-#include <string>
 #include <thread>
 #include <list>
 #include "clientManager.h"
-#include <signal.h>
+#include <csignal>
 
 static volatile sig_atomic_t keepRunning = 1;
 

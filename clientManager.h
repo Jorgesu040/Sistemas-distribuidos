@@ -1,6 +1,3 @@
-//
-// Created by jorge on 10/2/25.
-//
 #include "utils.h"
 
 #ifndef CLIENT_CLIENTMANAGER_H
