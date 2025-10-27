@@ -66,7 +66,7 @@ void recibePaquetesAsync(int id)
             vector<unsigned char> ack_buffer;
             pack(ack_buffer, clientManager::ack);
             sendMSG(id, ack_buffer);
-			cout << "Cierre del servidor. Pulse ENTER para salir" << endl;
+			cout << "Cierre del servidor. CTRL+C o escriba salir" << endl;
 		} break;
 		default:
 		{
